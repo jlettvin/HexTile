@@ -8,6 +8,7 @@ Usage:
 [(-T Tiles| --Tiles=Tiles)] \
 [(-t tubulin| --tubulin=tubulin)] \
 [(-r | --rotate)] \
+[(-g | --github)] \
 [(-R Rings| --Rings=Rings)] \
 [(-l | --label)]
     HexTile.py (-h | --help)
@@ -16,6 +17,7 @@ Usage:
 Options:
     -l --label                     Label the tiles [default: False]
     -r --rotate                    Rotate some strands [default: False]
+    -g --github                    Output in github Readme.md format
     -R Rings --Rings=Rings         Count of rings [default: 0]
     -t TUBULIN --tubulin=TUBULIN   Strand count [default: 91]
     -T TILES --Tiles=TILES         Tile count [default: 91]
@@ -696,26 +698,37 @@ Each group of strands may be rotated separately in either direction.
 
         def __init__(self, **kw):
             self.update(kw)
+            self.github_format = self.get('--github', None)
+
 
         def __call__(self):
             tests = [n for n, m in getmembers(self) if n.startswith('test_')]
-            with TAG('html'):
-                tag('HexTile Concepts', ['head', 'title'])
-                with TAG('body'):
+            if (self.github_format):
+                self.github(tests)
 
-                    timestamp = datetime.now()
-                    human = '%A %B/%d/%Y %I:%M:%S %p'
-                    place = '%Y%m%d%H%M%S%f'
+                with open('README.md', 'w') as html:
+                    print>>html, TAG.final()
+            else:
+                with TAG('html'):
+                    tag('HexTile Concepts', ['head', 'title'])
+                    with TAG('body'):
+                        self.github(tests)
 
-                    with TAG('h3', align='center'):
-                        tag('HexTile Concepts')
-                    tag(timestamp.strftime(human), ['p', 'i'])
-                    tag(timestamp.strftime(place), ['p', 'i'])
-                    for test in tests:
-                        exec('self.%s()' % test)
+                with open('HexTile.html', 'w') as html:
+                    print>>html, TAG.final()
+            return self
 
-            with open('HexTile.html', 'w') as html:
-                print>>html, TAG.final()
+        def github(self, tests):
+            timestamp = datetime.now()
+            human = '%A %B/%d/%Y %I:%M:%S %p'
+            place = '%Y%m%d%H%M%S%f'
+
+            with TAG('h3', align='center'):
+                tag('HexTile Concepts')
+            tag(timestamp.strftime(human), ['p', 'i'])
+            tag(timestamp.strftime(place), ['p', 'i'])
+            for test in tests:
+                exec('self.%s()' % test)
             return self
 
     def main():

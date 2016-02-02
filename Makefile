@@ -1,4 +1,4 @@
 all:	HexTile.html
 
-HexTile.html:	HexTile.py
+HexTile.html:	HexTile.py Makefile
 	./HexTile.py -r
