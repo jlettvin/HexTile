@@ -661,6 +661,7 @@ Each group of strands may be rotated separately in either direction.
             kw = {'--tubulin': 61, '--Tiles': 91, '--rotate': True}
             self._common(name, doc, **kw)
 
+        '''
         def test_007(self):
             r"""&nbsp;&nbsp;&nbsp;&nbsp;
             """
@@ -695,6 +696,7 @@ Each group of strands may be rotated separately in either direction.
             name, doc = self.frameName, self.frameDoc
             kw = {'ignore': True}
             self._common(name, doc, **kw)
+        '''
 
         def __init__(self, **kw):
             self.update(kw)

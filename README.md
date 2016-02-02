@@ -2,11 +2,11 @@
 HexTile Concepts</h3>
 <p>
   <i>
-Tuesday February/02/2016 11:56:48 AM  </i>
+Tuesday February/02/2016 12:04:00 PM  </i>
 </p>
 <p>
   <i>
-20160202115648957264  </i>
+20160202120400381133  </i>
 </p>
 <h3>
 test_000</h3>
@@ -425,19 +425,4 @@ Figure 6</h5>
 |                                      \_____/                                       |
 |____________________________________________________________________________________|
 </pre>
-<h3>
-test_007</h3>
-&nbsp;&nbsp;&nbsp;&nbsp;
-            <h3>
-test_008</h3>
-&nbsp;&nbsp;&nbsp;&nbsp;
-            <h3>
-test_009</h3>
-&nbsp;&nbsp;&nbsp;&nbsp;
-            <h3>
-test_010</h3>
-&nbsp;&nbsp;&nbsp;&nbsp;
-            <h3>
-test_011</h3>
-&nbsp;&nbsp;&nbsp;&nbsp;
-            
+
