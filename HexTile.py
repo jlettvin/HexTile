@@ -676,6 +676,8 @@ This test illustrates the production of a single hexagon with labels.
 
         def test_002(self):
             r"""&nbsp;&nbsp;&nbsp;&nbsp;
+            A first ring is tiled with labels that begin with
+            the first tile after 12 noon in the Figure.
             """
             name, doc = self.frameName, self.frameDoc
             kw = {'--tubulin': 7, '--Tiles': 7, '--label': True}
