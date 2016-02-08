@@ -24,6 +24,22 @@ Options:
     -v --verbose                   Show details about execution
     -h --help                      Show this screen
     --version                      Show version
+
+Tubulin polymers distinctively course through the neurons of vertebrates.
+They form long unbroken unbranching chains from dendritic receptor
+down the dendrite, through the soma (sometimes), and to the axon terminal.
+These polymers intertwine but never touch.
+Modeling them poses a challenge which we approach as an exercise in
+forming ropes without individual strands intersecting.
+The method used is displacing strands around loops of adjacent hexagonal tiles.
+This guarantees no intersection as long as the tiles in a loop are
+more than three, the tiles form complete loops, and intersect no other loops.
+
+HexTile.py generates a field of hexagonal tiles
+which may host an individual abstract tubulin strand.
+Closed continuous non-intersecting loops of tubulin strands
+may be rotated to adjacent tiles.
+This emulates the character of tubulin pathways in axons.
 """
 
 from docopt import (docopt)
@@ -43,6 +59,12 @@ from Tag import (TAG)
 from SelfDoc import (classSelfDoc)
 
 class Dictionary(dict):
+    '''
+    The goal of this class is to simplify updating of dictionaries.
+    The implementation was going to expose keys as class members
+    but it was not necessary at this time, so this class is
+    VESTIGIAL.
+    '''
     def __init__(self, **kw):
         self.update(kw)
 
@@ -69,20 +91,30 @@ class HexTile(dict):
     neighbor = [[1,0,-1],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1],[1,-1,0]]
     s3o2 = sqrt(3.0)/2.0
     edge = 1.0 # unit scale for hexagon edge
-    fullRings = {N: 1+6*sum(range(N+1)) for N in range(30)}
+    fullRings = {N: 1+6*sum(range(N+1)) for N in range(30)} # >30 permitted
 
     def __init__(self, sibling=None, **kw):
+        """
+        Initialization includes inheriting a sibling's dictionary if exists
+        otherwise instance uses the specified values from the arg dictionary.
+        """
         if sibling:
+            # inherit the sibling dictionary to continue its tubulin strands.
             self.kw = sibling.kw
         else:
+            # otherwise start a new dictionary with specified values
             self.kw = kw
-        Tiles = int(kw['--Tiles'])
         rings = int(kw['--Rings'])
+        # If rings are specified, tiles map to the calculated number for rings.
         if rings and HexTile.fullRings.has_key(rings):
             Tiles = HexTile.fullRings[rings]
+        else:
+            Tiles = int(kw['--Tiles'])
+        # tubulins must map to one per tile or less
         tubulins = int(kw['--tubulin'])
         if tubulins > Tiles:
             kw['--tubulin'] = str(Tiles)
+
         self.verbose = kw.get('--verbose', False)
         self.tubes = Tiles
         self.ring = {}
@@ -92,31 +124,50 @@ class HexTile(dict):
             self.rotate(self.kw['rotates'])
 
     def needed(self, area):
+        """
+        Ensure that everything fits, and calculate the radius.
+        """
         assert type(area) == type(1)
         assert 0 < area <= HexTile.fullRings.values()
         ring, N, self.radius = 6, 1, 0
-        A = area - 1
+        A = area - 1            # account for the center tile
         while A > 0:
-            N += ring
-            A -= ring
-            ring += 6
-            self.radius += 1
+            N += ring           # unused count
+            A -= ring           # remove tile count appropriate for ring
+            ring += 6           # each ring adds 6 more tiles
+            self.radius += 1    # count how many tiles from center
         if self.verbose:
             print 'area', area, 'needs radius', self.radius
 
     def xy(self, elements, txy=[0.0, 0.0]):
+        """
+        Calculate the planar coordinates for the RGB positional specifier
+        scaled as specified.
+        The RGB specifier is non-orthogonal,
+        identifying a tile by its displacement along three vectors
+        where the vectors are 120 degrees apart.
+        TODO This should be updated for txy=[1.0, 1.0].
+        """
         R, G, B = elements(['R','G','B'])
         S = HexTile.edge
         return (S * R * txy[0], S * (B - G) * HexTile.s3o2 * txy[1])
 
     def adjacent(self, t1, t2):
+        """
+        Tile adjacency requires that displacement along an RGB vector
+        have values 0, +1, and -1.
+        UPDATED.
+        """
         tile1, tile2 = self[t1], self[t2]
-        dR = tile2['R'] - tile1['R']
-        dG = tile2['G'] - tile1['G']
-        dB = tile2['B'] - tile1['B']
-        return (dR+dG+dB) == 0
+        dR = tile2['R'] - tile1['R']; adR = abs(dR)
+        dG = tile2['G'] - tile1['G']; adG = abs(dG)
+        dB = tile2['B'] - tile1['B']; adB = abs(dB)
+        return (dR+dG+dB) == 0 and adR <= 1 and adG <= 1 and adB <= 1
 
     def adjacents(self, tiles):
+        """
+        Review a sequence of tiles for adjacency.
+        """
         shifted = tiles[1:] + tiles[:1]
         for t1,t2 in zip(tiles, shifted):
             if not self.adjacent(t1, t2):
@@ -128,13 +179,17 @@ class HexTile(dict):
         return True
 
     def rotate(self, groups):
-        # groups is a list of sublists.
-        # Each sublist is a sequence of Tile numbers.
-        # Each sequence is to be rotated or translated as a group.
-        # Tile numbers are expected to be unique over all sublists.
-        # Adjacent Tile numbers are expected to be neighbors.
+        """
+        Displace a sequence of tubulins to neighbors fulfilling adjacency.
 
-        # Make sure there are no shared tiles
+        groups is a list of sublists.
+        Each sublist is a sequence of Tile numbers.
+        Each sequence is to be rotated or translated as a group.
+        Tile numbers are expected to be unique over all sublists.
+        Adjacent Tile numbers are expected to be neighbors.
+
+        Make sure there are no shared tiles
+        """
         if self.kw['--rotate']:
             if groups:
                 A = sorted(reduce(add, groups))
@@ -158,6 +213,12 @@ class HexTile(dict):
         return self
 
     def generateRings(self):
+        """
+        generateRings makes the initial concentric rings of tiles.
+        Initialization specifies how many rings are to be formed.
+        This method performs the calculations necessary to
+        actually create and label those things.
+        """
         rgb = [0,0,0]
         tile = 1
         ring = 0
@@ -376,6 +437,7 @@ if __name__ == "__main__":
             tubes = kw.get('--tubulin', kw.get('--Tiles', 37))
             kw['--tubulin'] = tubes
 
+            # These are hand-generated loops of hexagons suitable for testing.
             if tubes >= 61:
                 groups[61] = range(38,62)
             if tubes >= 37:
@@ -616,7 +678,7 @@ This test illustrates the production of a single hexagon with labels.
             r"""&nbsp;&nbsp;&nbsp;&nbsp;
             """
             name, doc = self.frameName, self.frameDoc
-            kw = {'--tubulin': 7, '--Tiles': 7}
+            kw = {'--tubulin': 7, '--Tiles': 7, '--label': True}
             self._common(name, doc, **kw)
 
         def test_003(self):
